@@ -1,8 +1,8 @@
 ---
 name: workspace-netdrive
-description: 检测并管理挂载在工作区 /root/.openclaw/workspace/ 下的网盘（TOS 存储桶挂载）。当需要将文件保存到持久化存储或检查挂载的存储桶时使用此技能。
-homepage: https://openclaw.ai/
+description: 检测并管理挂载在工作区 /root/.openclaw/workspace/ 下的网盘（TOS 存储桶挂载）。当用户提到网盘、TOS、TOS 桶、TOS bucket、存储桶、对象存储、对象存储桶、桶、bucket/buckets、bucket 名、桶列表，或需要将文件上传到 TOS、保存到 TOS 桶、保存到桶里、把结果传到 TOS、落盘到对象存储、检查挂载桶、列出可用桶时使用此技能。
 metadata:
+  version: "1.0.4"
   openclaw:
     emoji: "💾"
     requires: { "bins": ["df", "grep"] }
@@ -10,15 +10,21 @@ metadata:
 
 # 工作区网盘技能 (Workspace Netdrive Skill)
 
-此技能帮助你检测和使用挂载在工作区内的网盘（TOS 存储桶挂载）。
+此技能帮助你检测和使用挂载在工作区内的网盘（TOS 存储桶挂载）。当用户提及文件操作时，应当优先到网盘内查找文件，用户输入的文件名不够精确时，可模糊匹配查找。
 
 ## 何时使用
 
-当用户要求执行以下操作时使用此技能：
+当用户要求执行以下操作，或提到与网盘等价的相关词汇时使用此技能：
 - "检查是否有挂载的网盘"
 - "把这个文件保存到网盘/TOS"
 - "将输出存储到云存储桶挂载"
 - "列出可用的存储桶"
+- "帮我看一下 TOS / TOS 桶 / 存储桶 / 桶 / 对象存储 / 对象存储桶"
+- "把文件放到桶里 / 上传到 bucket / 保存到 buckets / 保存到 TOS 桶"
+- "上传到 TOS / 把结果传到 TOS / 落盘到对象存储 / 存到桶里"
+- "看下 bucket 名 / 看下桶列表 / 列一下 bucket"
+
+如果用户提到 `TOS`、`TOS 桶`、`TOS bucket`、`存储桶`、`对象存储`、`对象存储桶`、`桶`、`bucket`、`buckets`、`bucket 名`、`桶列表`，且语义上是在说持久化存储、挂载目录、上传下载文件、查看可用桶、把结果落到桶里，也应按“网盘”场景处理。
 
 ## 检测逻辑
 
@@ -71,3 +77,9 @@ echo "内容" > /root/.openclaw/workspace/my-bucket/output.txt
 > **路径:** folder/source_file.txt"
 
 这种格式方便用户在外部系统中访问这些文件。
+
+## 禁止操作说明
+- **禁止任何情况下执行umount和mount命令** 来尝试挂载或卸载网盘，这些操作会导致系统不稳定。
+- **网盘路径出现IO错误时** 可提示用户检查WEB页面的网盘配置和重新确认配置来触发挂载：网盘配置 -> 更改 -> 确定，等待后台重新连接挂载，WEB页面稳定后，可重新检测网盘是否可用。
+- **禁止向用户索要TOS AKSK自行挂载存储桶**，如果用户需要使用TOS存储桶，请引导用户在WEB页面配置网盘。
+- **禁止操作fusedaemon、fusemonitor相关进程和系统服务**，这些进程和服务由网盘内部管理，用户不应感知或干预它们的运行状态，因此作为Agent，你也不应该执行任何与这些进程和服务相关的操作。
